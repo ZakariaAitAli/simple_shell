@@ -12,12 +12,12 @@ int _strlen(char *str)
 
 	while (str[length])
 		length++;
-	return length;
+	return (length);
 }
 
 /**
- * tokenize - splits a given string into tokens
- * @line: the given string
+ * tokenize_input - splits a given string into tokens
+ * @input_buffer: the given string
  * @delimiters: the given delimiter
  *
  * Return: pointer to an array of tokens, or NULL if it fails
@@ -29,11 +29,11 @@ char **tokenize_input(char *input_buffer, const char *delimiters)
 	char **tokenArray;
 
 	if (!input_buffer)
-		return NULL;
+		return (NULL);
 
 	tokenArray = malloc(MAX_TOKEN);
 	if (!tokenArray)
-		return NULL;
+		return (NULL);
 
 	token = strtok(input_buffer, delimiters);
 	while (token)
@@ -42,7 +42,7 @@ char **tokenize_input(char *input_buffer, const char *delimiters)
 		token = strtok(NULL, delimiters);
 	}
 	tokenArray[index] = NULL;
-	return tokenArray;
+	return (tokenArray);
 }
 
 /**
@@ -62,7 +62,7 @@ char *path_concat(char *dest, char *src)
 
 	result = malloc(destLength + srcLength + 2);
 	if (!result)
-		return NULL;
+		return (NULL);
 
 	while (dest[j])
 	{
@@ -80,11 +80,11 @@ char *path_concat(char *dest, char *src)
 		i++;
 	}
 	result[i] = '\0';
-	return result;
+	return (result);
 }
 
 /**
- * _which - locates the given filename if in the PATH
+ * get_executable_path - locates the given filename if in the PATH
  * @filename: the given filename
  *
  * Return: pointer to the pathname of the file/command, or NULL if not found
@@ -102,7 +102,7 @@ char *get_executable_path(const char *filename)
 
 	if (stat(filename, &fileStat) == 0)
 	{
-		return (char *)filename;
+		return ((char *)filename);
 	}
 	else
 	{
@@ -111,11 +111,11 @@ char *get_executable_path(const char *filename)
 			fullPath = path_concat(pathTokens[index], (char *)filename);
 			if (stat(fullPath, &fileStat) == 0)
 			{
-				return fullPath;
+				return (fullPath);
 			}
 			index++;
 		}
 	}
-	return NULL;
+	return (NULL);
 }
 
