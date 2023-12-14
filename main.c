@@ -1,46 +1,53 @@
-#include "main.h"
+#include "shell.h"
 
-/**
- * main - the main function of the project
- *
- * Return: 0 Always
- */
+int main(void) {
+	char buffer[BUFFER_SIZE];
+	ssize_t read_chars;
+	pid_t child_pid;
+	int status;
 
-int main(void)
-{
-	char *input_buffer;
-	char shell_prompt[] = "#Cisfun$ ";
-	char delimiters[] = " \n\t\a";
-	int read_result, child_status;
-	size_t buffer_size = BUFFER_SIZE;
-	char **tokenized_input;
-	pid_t child_process_id;
+	while (1) {
+		/* Display prompt */
+		write(STDOUT_FILENO, "$ ", 2);
 
-	input_buffer = malloc(BUFFER_SIZE);
-	if (!input_buffer)
-		handle_memory_allocation_error();
+		/* Read user input */
+		read_chars = read(STDIN_FILENO, buffer, BUFFER_SIZE);
 
-	while (read_result != (-1))
-	{
-		printf("%s", shell_prompt);
-		read_result = getline(&input_buffer, &buffer_size, stdin);
-		tokenized_input = tokenize_input(input_buffer, delimiters);
-		child_process_id = fork();
-
-		if (child_process_id == -1)
-			handle_fork_error();
-
-		if (child_process_id == 0)
-		{
-			if (execve(get_executable_path(tokenized_input[0]),
-					   tokenized_input, NULL) == -1)
-				handle_execve_error();
+		/* Check for end-of-file (Ctrl+D) */
+		if (read_chars == 0) {
+			write(STDOUT_FILENO, "\n", 1);
+			break;
 		}
-		else
-		{
-			wait(&child_status);
+
+		/* Remove newline character */
+		buffer[read_chars - 1] = '\0';
+
+		/* Fork a child process */
+		child_pid = fork();
+
+		if (child_pid == -1) {
+			perror("Error forking process");
+			_exit(EXIT_FAILURE);
+		}
+
+		if (child_pid == 0) {
+			/* Child process */
+			close(STDIN_FILENO);
+			execute_command(buffer);
+			/* If execve is successful, this line won't be reached */
+			_exit(EXIT_FAILURE);
+		} else {
+			/* Parent process */
+			waitpid(child_pid, &status, 0);
+
+			if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+				/* Print the error message only if the child process failed */
+				if (WEXITSTATUS(status) != EXIT_FAILURE) {
+					write(STDERR_FILENO, "./hsh: No such file or directory\n", 33);
+				}
+			}
 		}
 	}
 
-	return (0);
+	return 0;
 }
